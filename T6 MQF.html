@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 10px;
+            line-height: 1.6;
+        }
+        .correct {
+            background-color: green;
+            color: white;
+        }
+        .incorrect {
+            background-color: red;
+            color: white;
+        }
+        .highlight {
+            background-color: green;
+            color: white;
+        }
+        .hidden {
+            display: none;
+        }
+        .option {
+            display: block;
+            margin: 5px 0;
+            padding: 10px;
+            font-size: 18px;
+            width: 100%;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+        button {
+            font-size: 18px;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="quiz-container">
+    <div class="question">
+        <p id="question-text"></p>
+        <div id="options"></div>
+        <p id="answer" class="hidden"></p>
+    </div>
+    <button id="next-button" onclick="nextQuestion()" class="hidden">Next Question</button>
+</div>
+
+<script>
+    console.log("Script loaded");
+
+    let currentQuestionIndex = 0;
+    const questions = [
+        {
+            question: "For cross-country, out and backs, and training flights using out bases, aircrews will review the AHAS/BAM for the out locations prior to departure from home field.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFI 11-202 Vol 3,AETC SUP", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Ensure the aircraft is carrying enough usable fuel on each flight to increase the total planned flight time between refueling points by 10 percent (up to a maximum of 45 minutes for fixed wing) or _________minutes, whichever is greater.",
+            options: ["A.  30", "B.  15", "C.  20", "D.  60", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "When computing required fuel reserves, turbine-powered aircraft use fuel consumption rates that provide:",
+            options: ["A.  long range cruise at 10,000 MSL", "B.  maximum endurance", "C.  maximum range cruise at planned divert altitude", "D.  maximum endurance at 10,000 MSL", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "An aircraft established on final approach has the right-of-way over other aircraft on the ground or in the air, except when two or more aircraft are approaching to land. In this case:",
+            options: ["A.  the higher aircraft has the right of way.", "B.  the aircraft closest to the ground must break out", "C.  the aircraft at the lower altitude has the right-of-way but it shall not use this advantage to cut in front of or overtake the other.", "D.  the most maneuverable aircraft must yield right-of-way", "Reference: AFI 11-202 Vol 3,AETC SUP", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "When given clearance to taxi by ATC, pilots:",
+            options: ["A.  do not have to hold short of intersecting runways.", "B.  are cleared intersecting runways and onto the assigned runway.", "C.  shall taxi to the assigned runway via the most expeditious route.", "D.  will hold short of intersecting runways on the route of taxi until obtaining specific clearance to cross.", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "Do not turn after a takeoff, touch and go or low approach unless:",
+            options: ["A.  at least 400 ft. above the Departure End of the Runway (DER) elevation.", "B.  at a safe airspeed", "C.  specifically cleared by the controlling agency, required by a published procedure, or when executing a closed pattern", "D.  past the end of the runway (if visible)", "Reference: AFI 11-202 Vol 3, AETC SUP1", "Page/Para: na"],
+            correctAnswer: "E"
+        },
+        {
+            question: "USAF fixed-wing aircraft must fly under IFR when:",
+            options: ["A.  operating in Class A airspace.", "B.  operating in excess of 180 KTAS within (not simply crossing) federal airways.", "C.  operating at night, unless the mission cannot be flown under IFR.", "D.  all of the above", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "If the GPS database has expired, the PIC",
+            options: ["A.  May continue a mission with an expired database if the database information required for the flight can be verified with current FLIP", "B.  Will not fly procedures that require terminal or better accuracy (i.e. terminal or approach)", "C.  Both a and b", "D.  The PIC cannot use the GPS at all with an expired database", "Reference: AFMAN 11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "If a RAIM flag/status annunciation appears after the FAWP:",
+            options: ["A.  Descend no lower than MDA, proceed to the MAWP, and execute a missed approach", "B.  Climb to the missed approach altitude, proceed to the MAWP and execute a missed approach", "C.  Initiate a climbing turn back to the FAWP", "D.  Immediately switch to backup non-precision approach", "Reference: AFMAN 11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "In formation, you notice your wingman holds his or her hand at the top of the canopy, palm down,fingers extended and joined. He or she moves his or her hand forward and down. He or she is trying to tell you:",
+            options: ["A.  Descend to lower altitude.", "B.  He or she desires to land.", "C.  He or she needs to land immediately.", "D.  He or she must land on your wing.", "Reference: AFI 11-205", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "A visor must be worn during all phases of flight (including at night).",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFI 11-2T-6 Vol 3", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "While leading a formation, you notice that your wingman holds a closed fist to the top of the canopy with the thumb extended downward. He or she then moves his or her arm up and down rapidly.",
+            options: ["A.  He or she wants to land immediately.", "B.  He or she is HEFOE with an oxygen problem.", "C.  He or she needs to descend.", "D.  He or she is indicating a low fuel state.", "Reference: AFI 11-205", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "The formation signal for attention in the air is to:",
+            options: ["A.  large wing rock.", "B.  execute rapid, shallow wing rock.", "C.  execute a series of porpoising maneuvers.", "D.  turn the anti-collision strobe lights off then on.", "Reference: AFI 11-205", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "G-suits are required on all sorties when planning to exceed 2 G\'s during any portion of a sortie.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFI 11-2T-6 Vol 3", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Maintain a taxi interval of ____ feet when staggered and ____ feet when in trail.",
+            options: ["A.  60150", "B.  150300", "C.  100200", "D.  75150", "Reference: AFI 11-2T-6Vol 3", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "Normal recovery fuel (the fuel on initial or at the FAF at the base of intended landing or alternate) is the higher of what is established locally or ____ pounds:",
+            options: ["A.  250", "B.  200", "C.  150", "D.  100", "Reference: AFI 11-2T-6 Vol 3", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "The LDG flap setting should be used for full-stop landings when the heavy weight flaps up landing distance is greater than or equal to ___ of the actual field length.",
+            options: ["A.  0.25", "B.  0.75", "C.  0.8", "D.  1", "Reference: AFI 11-2T-6 Vol 3", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "When conducting OCF recoveries over clouds, plan to complete all OCF recoveries (to include dive recoveries) at least _____ feet above the clouds.",
+            options: ["A.  1000", "B.  3000", "C.  5000", "D.  7000", "Reference: AFI 11-2T-6 Vol 3", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "Which of the following maneuvers is prohibited at night:",
+            options: ["A.  aerobatics", "B.  stalls", "C.  practicing the visual circling maneuver portion of an instrument approach", "D.  All of the above", "Reference: AFI 11-2T-6 Vol 3", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "Flying formation at night is prohibited.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFI 11-2T-6 Vol 3", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "The maximum crosswind for formation wing takeoffs and landings is _____ knots.",
+            options: ["A.  5", "B.  10", "C.  15", "D.  20", "Reference: AFI 11-2T-6 Vol 3", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "When leading fingertip formation, limit maneuvering to 120 knots minimum airspeed, approximately 90 degrees of bank, and 2 to 3 Gs.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFI 11-2T-6 Vol 3", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "When flying a low level route over terrain with varying height, minimum altitude is 500 feet above the highest terrain within 2,000 feet of the aircraft.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFI 11-2T-6 Vol 3", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Aircrews should use TO or UP flap settings for full-stop and touch-and-go landings when the crosswind (steady state or gust) exceeds ___ knots.",
+            options: ["A.  5", "B.  10", "C.  13", "D.  15", "Reference: AFI 11-2T-6 Vol 3", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "With operations group commander approval, aircrews may conduct operations at uncontrolled, civil (not private) airfields, with the following restrictions:",
+            options: ["A.  single ship only", "B.  no more than two aircraft (total) in the pattern", "C.  instrument approaches must be flown under VFR clearance", "D.  a and b only", "Reference: AFI 11-2T-6 Vol 3", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "The minimum runway width for normal T-6 operations is _____ ft.",
+            options: ["A.  150", "B.  100", "C.  50", "D.  75", "Reference: AFI 11-2T-6 Vol 3", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "Minimum weather for flying aerobatics and extended trail levels I, II, and III",
+            options: ["A.  Clear of clouds with 3 NM in-flight visibility", "B.  1000 below clouds with 5 NM visibility", "C.  1500/3", "D.  Clear of clouds with 1 NM visibility", "Reference: AFI 11-2T-6 Vol3", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Taxi spacing will be a minimum of ____feet and on the taxiway centerline at night.",
+            options: ["A.  75", "B.  150", "C.  300", "D.  200", "Reference: AFI 11-2T-6 Vol 3", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "Local training flights are not permitted over land when steady state surface winds (forecast or actual) in training or operating areas exceed ____ knots.",
+            options: ["A.  35", "B.  25", "C.  50", "D.  30", "Reference: AFI 11-2T-6 Vol 3", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "After beginning a penetration or published approach, if weather is reported below the required PWC or published minimums (ceiling or visibility), the pilot may continue the approach to the PWC or published minimums, whichever is higher.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFI 11-2T-6 Vol 3", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "In fingertip formation, limit maneuvering to _________ knots minimum airspeed, approximately 90degrees of bank, and 2 to 3 Gs.",
+            options: ["A.  100", "B.  110", "C.  90", "D.  120", "Reference: AFI 11-2T-6 Vol 3", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "Planned formation low approaches will________.",
+            options: ["A.  be initiated no lower than 100 ft AGL", "B.  not descend below 100 ft AGL at any time", "C.  go around no lower than 300 ft AGL", "D.  are not allowed", "Reference: AFI 11-2T-6 Vol 3", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Minimum fuel is _____ pounds (_____ pounds on all solo student syllabus sorties).",
+            options: ["A.  110, 150", "B.  150, 250", "C.  150, 200", "D.  110, 200", "Reference: AFI 11-2T-6 Vol 3", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "The minimum altitude for VFR, non-local, point to point navigation missions dictated by operational or training requirements is _________ feet AGL.",
+            options: ["A.  1500", "B.  3000", "C.  5000", "D.  Not specified", "Reference: AFI 11-2T-6 Vol 3", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "Do not file to a destination unless the ceiling and visibility for the estimated time of arrival (plus or minus1 hour) is at or above the appropriate PWC or suitable published minimums, whichever is greater.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFI 11-2T-6 Vol 3", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Limit close trail maneuvering to turns and modified lazy eights, using _______knots minimum airspeed, approximately_______ degrees of bank, and _______ Gs.",
+            options: ["A.  120, 90, 2 to 3", "B.  110, 90, 2 to 3", "C.  120, 60, 1 to 2", "D.  100, 90, 2 to 3", "Reference: AFI 11-2T-6 Vol 3", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "All of the following may be flown at an uncontrolled airfield except _____ .",
+            options: ["A.  overhead patterns", "B.  instrument approaches", "C.  ELPs", "D.  rectangular patterns (as depicted in FAA AIM)", "Reference: AFI 11-2T-6 Vol3", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Over-water training flights will not be permitted when forecast or actual wave heights exceed ____ ft or surface winds exceed _____ knots in training or operating areas.",
+            options: ["A.  15, 20", "B.  10, 25", "C.  10, 35", "D.  15, 25", "Reference: AFI 11-2T-6 Vol 3", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "Minimum altitude to fly extended trail, aerobatics, stalls, or slow flight is _______.",
+            options: ["A.  5,000\' AGL", "B.  6,000\' AGL", "C.  6,000\' MSL", "D.  Not specified", "Reference: AFI 11-2T-6 Vol 3", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "Primary flight instrumentation must provide:",
+            options: ["A.  Full-time attitude, altitude, and airspeed information", "B.  immediately discernable attitude recognition capability", "C.  unusual attitude recovery capability", "D.  complete fault indications", "Reference: AFMAN 11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "E"
+        },
+        {
+            question: "The localizer course may be flown outside of the 18 NM flight-check distance if:",
+            options: ["A.  never", "B.  the instrument procedure depicts a distance greater than 18 NM", "C.  radar service is provided", "D.  b and c only", "Reference: AFMAN 11-217 Vol 3", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "The glide slope signal is usable to a range of _____ NM.",
+            options: ["A.  8", "B.  10", "C.  12", "D.  18", "Reference: AFMAN 11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "On IAPs with dead reckoning (DR) courses, pilots are expected to fly the depicted ground track by correcting for wind.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFMAN 11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "ATC should issue holding instructions at least ______ minutes before reaching a clearance limit fix. Pilots are expected to start a speed reduction when an aircraft is ______ minutes or less from a clearance limit and a clearance beyond the fix has not been received so that the aircraft will cross thefix at or below __________.",
+            options: ["A.  10, 5, max endurance airspeed", "B.  5, 2, minimum holding airspeed", "C.  5, 3, maximum holding airspeed", "D.  3, 5, 150 KIAS", "Reference: AFMAN 11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "Before taxi, crews should set their altimeters to the airport QNH. Both primary altimeters must agree within _________ feet of field elevation.",
+            options: ["A.  50", "B.  75", "C.  100", "D.  35", "Reference: AFMAN 11-217 Vol 3", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "The Defense Internet NOTAM System (DINS) includes all military airfields and virtually all domestic, international, and Flight Data Center (FDC) NOTAMs. If an airfield does not transmit NOTAM data to the US NOTAM System:",
+            options: ["A.  a plain language notice in red font is displayed advising the user of that fact", "B.  pilots must contact the airfield manager or associated FSS directly for NOTAM information", "C.  all airfields transmit NOTAM data to DINS", "D.  a and b", "Reference: AFMAN 11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "An emergency safe altitude is normally developed only for military procedures and will provide_____ feet of obstacle clearance ( _____ feet in designated mountainous areas) within _____ NM of the facility.",
+            options: ["A.  1,000, (3,000), 25", "B.  2,000, (3,000), 100", "C.  1,000, (2,000), 25", "D.  1,000, (2,000), 100", "Reference: AFMAN 11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "Touchdown zone elevation (TDZE) is the highest point in the first _____ feet of the landing surface.",
+            options: ["A.  1500", "B.  2000", "C.  2500", "D.  3000", "Reference: AFMAN 11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "The VDP is normally identified by DME and is computed for the ____________ on the IAP.",
+            options: ["A.  precision approach with the highest DH.", "B.  precision approach with the lowest DH.", "C.  non-precision approach with the highest MDA.", "D.  non-precision approach with the lowest MDA.", "Reference: AFMAN 11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "When checking the VOR at a designated ground checkpoint, the allowable CDI error is _____degrees.",
+            options: ["A.  +/- 2", "B.  +/- 4", "C.  +/- 5", "D.  0", "Reference: AFMAN 11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "A standard holding pattern consists of ________ turns. The standard no-wind length of the inbound leg is _________ at or below 14,000 feet MSL and __________ above 14,000 feet MSL:",
+            options: ["A.  left, 1 minute, 1-1/2 minutes", "B.  right, 1-1/2 minutes, 1 minute", "C.  right, 1 minute, 1-1/2 minutes", "D.  left, 1 minute, 2 minutes", "Reference: AFMAN 11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "When determining bank angle for holding, unless correcting for known winds, make all turns during entry and while holding at ___________ , whichever requires the least bank angle.",
+            options: ["A.  3 degrees per second", "B.  30 degree bank angle", "C.  bank angle commanded by the flight director system", "D.  all of the above", "Reference: AFMAN11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "Computation of the GPS final approach course is based on the station magnetic variation retrieved from the aircraft magnetic variation database. Many aircraft lack the capability to update the magnetic variation database. This will cause a difference between charted final approach course in the IAP and the final approach course computed by the aircraft differ by more than _______ degrees, the procedure is not valid.",
+            options: ["A.  3", "B.  4", "C.  5", "D.  10", "Reference: AFMAN 11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "Pilots shall perform the missed approach when the missed approach point, decision height (DH), or decision altitude (DA) is reached and any of the following conditions exist:",
+            options: ["A.  runway environment is not in sight", "B.  unable to make a safe landing", "C.  directed to execute missed approach by the controlling agency", "D.  a and c only", "Reference: AFMAN 11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "E"
+        },
+        {
+            question: "Before reaching the IAF, pilots must:",
+            options: ["A.  recheck the weather (if appropriate).", "B.  review the IAP.", "C.  check the heading and attitude systems.", "D.  obtain clearance for the approach.", "Reference: AFMAN 11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "E"
+        },
+        {
+            question: "While being vectored, pilots will repeat all:",
+            options: ["A.  headings.", "B.  altitudes (departing and assigned).", "C.  altimeter settings.", "D.  all of the above.", "Reference: AFMAN 11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "The remain within distance of a procedure turn is measured from __________ unless the IAP specifies otherwise:",
+            options: ["A.  the procedure turn fix.", "B.  the runway.", "C.  final approach fix.", "D.  the IAF.", "Reference: AFMAN 11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "The standard Terminal Arrival Areas (TAA) depicted on GPS approaches consist of the areas defined by the extension of the IAF legs and the intermediate segment course. These areas are called:",
+            options: ["A.  straight-in, right-base, and left-base TAAs", "B.  IF, IAF, and FAWP TAAs", "C.  feeder routes", "D.  RNAV arrival sectors", "Reference: AFMAN 11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "The localizer signal typically has a usable range of at least 18 miles within _______ degrees of the course centerline.",
+            options: ["A.  10", "B.  12", "C.  18", "D.  20", "Reference: AFMAN 11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "When the final approach fix is the NAVAID for an approach, a course change of up to _______ degrees may be required and the approach still be considered a straight-in approach.",
+            options: ["A.  20", "B.  30", "C.  35", "D.  40", "Reference: AFMAN 11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "If you are more than one dot (half-scale) below or two dots (full-scale) above glide slope on an ILS:",
+            options: ["A.  do not descend below localizer minimums.", "B.  execute the missed approach immediately", "C.  a descent to DA/DH may be continued if the glide slope is recaptured.", "D.  either a or c above.", "Reference: AFMAN 11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "Attempt contact with the controlling agency if no transmissions are received for:",
+            options: ["A.  1 minute while being vectored to final.", "B.  15 seconds on final for an ASR.", "C.  5 seconds on final for a PAR.", "D.  all of the above", "Reference: AFMAN 11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "When an ASR approach will end in a circle, furnish the controller with___________. The controller will then issue the circling MDA:",
+            options: ["A.  your weather minimums.", "B.  your aircraft category.", "C.  your final approach airspeed.", "D.  none of the above.", "Reference: AFMAN 11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "When issued a departure clearance instructing you to \"fly runway heading\" by ATC:",
+            options: ["A.  maintain the extended runway centerline ground track using wind drift corrections.", "B.  do not apply wind drift corrections.", "C.  a diverse departure is authorized with this clearance", "D.  the weather must be greater than 1500/3", "Reference: AFMAN11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "When reported weather conditions are less than ___________ , ATC will not authorize aircraft orvehicles to operate inside the ILS critical area while an aircraft is between the ILS FAF and touchdown.",
+            options: ["A.  800 foot ceiling and/or visibility is less than 2 statute miles", "B.  1000 foot ceiling and 3 NM visibility", "C.  200 foot ceiling and/or 1/2 NM visibility", "D.  300 foot ceiling and 1 NM visibility", "Reference: AFMAN 11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Pilots may circle out a precision approach, but must use extreme caution to ensure their aircraft is within the appropriate circling radius before abandoning the precision glideslope.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFMAN 11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "In a low altitude approach, a maximum ____________ descent is normally planned.",
+            options: ["A.  200 feet per nautical mile", "B.  200 feet per minute", "C.  400 feet per nautical mile", "D.  400 feet per minute", "Reference: AFMAN11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "Any abnormal indications experienced within ____ degrees of the published front or back course centerline of an ILS localizer should be reported immediately.",
+            options: ["A.  35", "B.  10", "C.  5", "D.  14", "Reference: AFMAN 11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "In order to use GPS for the terminal area, all procedures (DPs, STARs, IAPs) must be retrieved in their entirety from a current, approved navigation database.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFMAN 11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Terminal CDI scaling during a GPS approach is _____ nm; approach sensitivity (within 2NM of the FAWP) is ____ nm.",
+            options: ["A.  5, 1", "B.  1, .3", "C.  5, .3", "D.  2, 1", "Reference: AFMAN 11-217 Vol 1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "_______ is the tendency of the aircraft to yaw away from the direction of aileron input.",
+            options: ["A.  Yaw", "B.  Adverse Yaw", "C.  Nose Track", "D.  Kinesis", "Reference: AETCMAN 11-248", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "Bingo fuel is established and briefed _____________.",
+            options: ["A.  on contact and formation missions only", "B.  optionally, at the discretion of the aircraft commander", "C.  only when the WX requires an alternate", "D.  for every mission", "Reference: AETCMAN 11-248", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "A slip is caused by ________________ bank angle in relation to the turn rate of the aircraft.",
+            options: ["A.  too little", "B.  too much", "C.  sufficient", "D.  insufficient", "Reference: AETCMAN 11-248", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "An emergency route abort altitude (ERAA) for the planned portion of a low level route should be computed to provide _____ ft (_____ ft in mountainous terrain) clearance from the highest obstacle within ____ nautical miles either side of the route.",
+            options: ["A.  1,000; 2,000; 5", "B.  1,000; 2,000; 25", "C.  500; 1,000; 10", "D.  500; 1,000; 5", "Reference: AETCMAN 11-248", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "Attain a minimum of 140 KIAS and 400 feet AGL, or per local directives, before the first turn after takeoff. The 400 foot restriction does not apply to the VFR pattern.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AETCMAN 11-248", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Practice slow flight using the Flaps UP configuration and ______ knots.",
+            options: ["A.  80-85", "B.  85-90", "C.  90-95", "D.  95-100", "Reference: AETCMAN 11-248", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "Perform a G-awareness exercise or AGSM demonstration before accomplishing any maneuver that may require 3 Gs or more.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AETCMAN 11-248", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "In a typical MOA, optimum energy for aerobatic maneuvering is ______ KIAS at _________:",
+            options: ["A.  150-200, 8000 MSL", "B.  100-200, 10000 MSL", "C.  190-210, an altitude midway between the top and bottom area limits", "D.  180-200, an altitude midway between the top and bottom area limits", "Reference: AETCMAN 11-248", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "A visual reference for proper no-wind spacing (0.7 to 1.0 NM) on inside downwind (Flaps TO), is approximately when the landing runway is placed half way between the _______ and the ________.",
+            options: ["A.  fuel filler cap, white/blue color change", "B.  fuel filler cap, wingtip", "C.  mid-point of wing, wingtip", "D.  AOA vane, wingtip", "Reference: AETCMAN 11-248", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "On an ELP, the following conditions describe the target low key position:",
+            options: ["A.  120 KIAS minimum or on-speed AOA, whichever is higher", "B.  1,500\' AGL", "C.  abeam intended point of touchdown", "D.  a and b only", "Reference: AETCMAN 11-248", "Page/Para: na"],
+            correctAnswer: "E"
+        },
+        {
+            question: "_______________________ are the top priorities of Number 1 in formation.",
+            options: ["A.  Radio discipline and planning", "B.  Clearing, planning, and monitoring Number 2", "C.  Monitoring Number 2 and clearing", "D.  Communication, planning, and providing a stable platform", "Reference: AETCMAN 11-248", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "Applying ORM 3-2-1 guidance in a forced landing (FL) engine-out situation, pilots will not descend below the minimum controlled ejection altitude of 2,000\' AGL unless the aircraft is:",
+            options: ["A.  On profile for the field of intended landing, with the runway in sight, and in a position to safely maneuver to land", "B.  On profile, gear confirmed down, on centerline", "C.  Descent checklist completed, on profile for intended landing field, runway in sight", "D.  On profile for field of intended landing, runway OBS course set in GPS, and in a position to safely maneuver to land", "Reference: AETCMAN 11-248", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "During an instrument trail departure, until join up or level off, both number 1 and number 2 will call:",
+            options: ["A.  passing every 5,000 ft.", "B.  when passing thousands of feet (1000, 2000, etc.).", "C.  when passing even thousands of feet (2000, 4000, et) and when initiating heading changes.", "D.  passing every 5,000 ft and when initiating all heading changes.", "Reference: AETCMAN 11-248", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "Normal holding airspeed in the T-6 is ___ KIAS.",
+            options: ["A.  150", "B.  160", "C.  180", "D.  125", "Reference: AETCMAN 11-248", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Power-On Stalls: Aircraft pitch and bank angle held constant until control effectiveness lost indicated by uncommanded nose drop or unplanned rolling motion. Recover to a wings level, climbing attitude. An entry speed of 160 KIAS results in about ______ -",
+            options: ["A.  500-1000", "B.  1000-1500", "C.  1500-2000", "D.  2000-3000", "Reference: AETCMAN 11-248", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "The AGSM cycle should last from 10 to 15 seconds with at least 4 to 5 breathing cycles.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AETCMAN 11-248", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "P-Factor is normally caused by:",
+            options: ["A.  AOA being higher on the upward moving propeller blade than on the downward moving propellerblade.", "B.  AOA being higher on the downward moving propeller blade than on the upward moving propeller blade.", "C.  The propeller rotating at a constant speed", "D.  A low PCL setting", "Reference: AETCMAN 11-248", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "Maximum abort speed calculations allow for a ___ second reaction time to select idle power and a___ second period to apply the brakes after idle is selected. Speed may increase up to _____ knots during this period.",
+            options: ["A.  3, 2, 10", "B.  2, 2, 15", "C.  4, 4, 20", "D.  3, 3, 20", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "Add _______feet to charted take off distance for formation wing take offs, assuming lead is using no less than ______% torque.",
+            options: ["A.  1000, 85", "B.  85, 100", "C.  1000, 80", "D.  1000, 75", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Although there is no time limit for operation at maximum continuous power, sustained operation at maximum power may significantly reduce engine service life.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Critical altitude is defined as ________. This occurs at approximately _________ feet MSL on a standard day with the PCL at MAX.",
+            options: ["A.  The altitude where delta-P begins to increase / 8,000", "B.  The altitude at which 100% torque is no longer available with the PCL at MAX / 16,000", "C.  The altitude at which the power curve is non-linear / 10,000", "D.  The optimum cruise altitude / 16,000", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "If the PCL is placed in cutoff with the PMU in OFF and the PROP SYS circuit breaker pulled, the propeller will not rapidly feather and may not fully feather until after landing.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "The engine data manager (EDM) monitors engine operating parameters and____________.",
+            options: ["A.  governs propeller RPM", "B.  illuminates the appropriate annunciator when necessary", "C.  is activated by a weight-on-wheels switch", "D.  allows near linear power response with PCL position", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "The engine has been flat-rated to produce ______ shaft horsepower.",
+            options: ["A.  900", "B.  1100", "C.  1300", "D.  1500", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "Oil cooling is accomplished by routing scavenged oil through an oil cooler located ________ before returning to the oil tank.",
+            options: ["A.  in the lower aft cowl assembly", "B.  in the RGB", "C.  in the left main gear well", "D.  next to the oil fill port", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "If the rate of change of propeller RPM exceeds the PMU sensor validity check limit, the PMU will assume a sensor failure has occurred, and dashes will be displayed for Np and Torque. If the dashes were caused by a propeller RPM rate limit exceedence:",
+            options: ["A.  smoothly advance the PCL until normal indications appear", "B.  a reset is not possible", "C.  cycling the PMU switch will restore the displays", "D.  cycle the PROP SYS circuit breaker", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "Placing the starter switch in the AUTO/RESET position automatically:",
+            options: ["A.  energizes the battery bus", "B.  engages the starter", "C.  energizes the ignition system", "D.  both b and c", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "During an auto start or normal operation with the ignition switch set to ______, the PMU will energize and deenergize the igniters as required.",
+            options: ["A.  ON", "B.  NORM", "C.  AUTO", "D.  AUTO/RESET", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "When the IGNITION switch is set to ON, or when the igniters are activated in AUTO mode, a green IGN SEL annunciator is illuminated.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "The reduction gearbox (RGB) is driven by the power turbine, which is driven by hot gases from the gas generator section. There is no mechanical connection between the gas generator section and the RGB.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "The PCLs are interconnected with a push-pull rod so that movement of one PCL moves the other.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "The propeller system is designed to maintain a constant speed of ______rpm (100% Np) during most flight conditions.",
+            options: ["A.  30000", "B.  3000-5000", "C.  2000", "D.  None of the above", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "The PCL in each cockpit contains switches for activating which of the following components:",
+            options: ["A.  rudder trim", "B.  speed brake", "C.  UHF communications", "D.  all of the above", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "When feathered, the propeller blades are aligned nearly ________ the wind.",
+            options: ["A.  flat against", "B.  opposite of", "C.  straight into", "D.  diagonal to", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "Propeller feather may be selected to minimize drag during engine failure by placing the ______to ______.",
+            options: ["A.  PCL, OFF", "B.  PROP, FEATHER", "C.  PCL, IDLE", "D.  None of the above", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "With the PMU functioning, the mechanical overspeed governor modulates oil pressure to the propeller pitch change piston to limit Np below _____ percent.",
+            options: ["A.  100", "B.  103", "C.  106", "D.  110", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "Power for the engine/systems/NACWS display (ENG SYS DIS) is provided through the_________ bus.",
+            options: ["A.  battery", "B.  generator", "C.  aux battery", "D.  AC", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "In the ground mode, the engine idle N1 is ______% and in the flight mode, idle is approximately _____%.",
+            options: ["A.  67, 40", "B.  60-61, 67", "C.  40, 60", "D.  67, 60", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "Power setting is linear with PCL position throughout the operating envelope of the aircraft.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Engine starts are NOT recommended with the PMU in the manual mode.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "If faults prevent the PMU from setting the requested power or respecting engine limits, or the pilot switches the PMU OFF, the system will revert to the manual mode.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "During a normal (auto) start, the PMU can automatically abort the start if necessary to avoid a hung/hot start or if any engine start parameter is exceeded.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "If the auto fuel balance system shuts off without reducing the fuel imbalance to _______ pounds or less, the auto balance system may be reset to provide an additional ______ minutes to balance the fuel load.",
+            options: ["A.  50, 3", "B.  30, 3", "C.  30, 2", "D.  20, 3", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "During an normal (auto) engine start, the PMU:",
+            options: ["A.  activates the starter", "B.  activates the boost pump", "C.  activates the igniters", "D.  adds fuel at the proper N1", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "E"
+        },
+        {
+            question: "The PCL may be advanced to IDLE any time N1 is at or above ______.",
+            options: ["A.  0.6", "B.  0.7", "C.  0.5", "D.  0.3", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "After the PCL has been advanced past the start ready position, the PMU will not cut off fuel to terminate a start.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "The start may be manually aborted by:",
+            options: ["A.  placing the PCL back to OFF", "B.  reselecting the STARTER switch to AUTO/RESET (if PCL is not past idle gate)", "C.  de-energizing the PMU", "D.  either a or b above", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "If a start attempt is automatically or manually aborted:",
+            options: ["A.  advance the PCL past the idle gate", "B.  immediately attempt a restart to burn any residual fuel", "C.  wait 10 minutes to allow residual fuel to evaporate", "D.  perform the Abort Start Procedure", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "Illumination of the fire warning light accompanied by one or more of the following indications is confirmation of an engine fire:",
+            options: ["A.  smoke", "B.  engine vibration", "C.  unusual sounds", "D.  fluctuating oil pressure, oil temperature, or hydraulic pressure", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "E"
+        },
+        {
+            question: "Flattening, twisting, kinking or denting of the fire detection loop will affect test or flight operation.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "During inverted flight, the inverted flight fuel pickup provides _______ fuel supply, and prevents air ingestion into the fuel system.",
+            options: ["A.  a limited", "B.  a minimum 15 seconds", "C.  a maximum 30 seconds", "D.  an unlimited", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "The fuel auto balance system (provided by the EDM) detects fuel imbalances:",
+            options: ["A.  using actual fuel quantity", "B.  using indicated fuel flow", "C.  as displayed on the fuel gauge", "D.  as calculated using the fuel control", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "Selecting the MANUAL FUEL BAL switch to L will:",
+            options: ["A.  stop motive flow fuel from feeding from the right tank.", "B.  drain fuel from the left wing.", "C.  add fuel to the left wing.", "D.  stop motive flow fuel from feeding from the left tank.", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "The generator provides 28 volts DC, which is sufficient to power:",
+            options: ["A.  all equipment on the generator bus", "B.  the battery bus equipment", "C.  charge the battery", "D.  all the above", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "If the generator control switch (GEN) has been set to on in either cockpit, and the occupant of the other cockpit selects ON:",
+            options: ["A.  generator function is interrupted momentarily, then", "B.  it trips the GEN switch in the other cockpit to OFF", "C.  generator function is controlled by the switch set to ON", "D.  all of the above", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "E"
+        },
+        {
+            question: "While the PMU should normally abort a hot/hung/no start, the pilot should manually abort a start in the following situations:",
+            options: ["A.  Normal N1 increase is halted", "B.  No rise of ITT is evident within 10sec after fuel flow indications", "C.  BAT BUS annunciator illuminates during the start sequence", "D.  PCL is moved or the ST READY annunciator extinguishes during the start sequence", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "E"
+        },
+        {
+            question: "Preflight testing of the auxiliary battery power level is accomplished:",
+            options: ["A.  prior to application of battery power", "B.  using the AUX BAT switch and making a radio call", "C.  using the AUX BAT test switch and light", "D.  both a and b above", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "E"
+        },
+        {
+            question: "In an emergency situation, the auxiliary battery will power the standby instruments, backup UHF radio, standby instrument lighting and FIRE 1 fire warning system for approximately ________.",
+            options: ["A.  3-5 minutes", "B.  10 minutes", "C.  30 minutes", "D.  1 hour", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "The hydraulic system consists of one engine-driven pump with approximately a ________capacity. The hydraulic pump pressurizes the normal system and emergency accumulator to________ psi.",
+            options: ["A.  1 gallon, 3000, +/- 150", "B.  5 quart, 3000 +/- 120", "C.  1 gallon, 1800", "D.  5 quart, 1800-3000", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "A normal gear extension/retraction sequence takes approximately ______ seconds.",
+            options: ["A.  5", "B.  6", "C.  44484", "D.  30", "Reference: T.O.1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "The wheel brake system ______ affected by a failure of the aircraft hydraulic system.",
+            options: ["A.  is", "B.  is not", "Reference: T.O.1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "The pilot applying the most wheel brake pedal force determines the amount of braking being used.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Flap position is controlled by a three-position flap selector marked:",
+            options: ["A.  UP, TO, LDG", "B.  UP, 50%, 100%", "C.  UP, HALF, FULL", "D.  UP, TO, DN", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Normal flap operation and indications are NOT available whenever:",
+            options: ["A.  the battery bus has failed", "B.  when the auxiliary battery is the only source of electrical power", "C.  the generator bus has failed", "D.  either a or b above", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "Emergency flap extension is enabled:",
+            options: ["A.  after selecting EMER using hydraulic system switch", "B.  after the emergency landing gear extension handle is operated", "C.  when the aux battery is the only source of electrical power", "D.  none of the above", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "During flap deployment or retraction, the flap position pointer moves:",
+            options: ["A.  with flap movement to indicate flap position in transit", "B.  to the selected flap position to indicate flap handle position", "C.  only when the flaps have reached the selected position", "D.  to an intermediate position between the placarded settings to indicate flap motion", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "The speed brake ______ be stopped at an intermediate deflection.",
+            options: ["A.  may", "B.  may not", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "If the flaps are extended, the speed brake will not extend.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Pressing and holding the trim interrupt button:",
+            options: ["A.  interrupts radio traffic to allow the student to trim", "B.  interrupts power to rudder trim, and centers the rudder", "C.  interrupts front cockpit input to allow IP intervention", "D.  interrupts power to all trim actuators and causes the TAD to disengage.", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "Actuating the TRIM DISCONNECT switch will:",
+            options: ["A.  remove power from the trim system", "B.  illuminate green TRIM OFF and TAD OFF annunciators", "C.  cause the trim aid device (TAD) to disengage", "D.  all of the above", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "_________ provides indication of takeoff trim setting.",
+            options: ["A.  A green band on each trim indicator", "B.  A green light near the top of the glare shield", "C.  A green stripe on the fuselage", "D.  A green T/O TRIM annunciator", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "The aileron trim actuator moves:",
+            options: ["A.  the ground adjustable trim tab", "B.  the aileron trim tab on the left wing", "C.  the entire aileron", "D.  the control stick centering mechanism", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "The pitch trim actuator moves:",
+            options: ["A.  the pitch trim tab on the right side of the elevator", "B.  the entire elevator", "C.  the control stick centering mechanism", "D.  none of the above", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "The ______ senses torque, altitude, airspeed, and pitch rate and computes a desired rudder trim tab position.",
+            options: ["A.  trim computer", "B.  PMU", "C.  air data computer", "D.  trim aid device (TAD)", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "The standby instruments are normally powered by the battery bus. In the event of a battery bus failure, the standby instruments are powered by the ____________.",
+            options: ["A.  battery direct bus", "B.  auxiliary battery", "C.  generator bus", "D.  avionics bus", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "An out-of-trim rudder, caused by pilot input or ___ input, may be perceived by the pilot as a rudder system malfunction. ________ the rudder may alleviate the increased rudder forces.",
+            options: ["A.  co-pilot, re-trimming", "B.  PMU, resetting", "C.  TAD, re-trimming", "D.  autopilot, adjusting", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "Once takeoff trim is set, the TAD will make no further trim inputs until:",
+            options: ["A.  the pilot moves the rudder out of trim", "B.  the aircraft accelerates to at least 80 KIAS", "C.  there is no weight on the wheels", "D.  b and c above", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "The ______ pitot system probe near the ______ wing tip provides ram air pressures for the airdata computer.",
+            options: ["A.  primary, right", "B.  primary, left", "C.  secondary, left", "D.  secondary, right", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "The manual override (MOR) handle on the ejection seat is provided to initiate seat/pilot separation if the automatic system fails or if seat/pilot separation is desired above:",
+            options: ["A.  15,000 AGL", "B.  14,000 MSL", "C.  14,000 AGL", "D.  20,000 MSL", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "The following fuels have been approved for use in the PT6A-68 engine: JP-4, JP-5, JP-8, JP-8+100 (USAF only), JET A, JET A+100 (USAF only), JET A-1, and JET B, F-24, F-34, F-35, F-40,F-44, F-27 (USAF Only). Commercial JET A, JET A-1 or JET B may be used,",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "As AOA approaches stall angle (approximately _____ units on the gage), the AOA computer activates the ________, (15-16 units) providing stall warning.",
+            options: ["A.  10, spoilers", "B.  18, speed brake", "C.  10, pitch limiter", "D.  18, stick shaker", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "If an inverted or power-on departure from controlled flight is encountered, land as soon as conditions permit. The pilot should suspect:",
+            options: ["A.  possible engine damage", "B.  loss of torque information", "C.  Np greater than 102%", "D.  PMU FAIL annunciation", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "If HYDR FL LO annunciator illuminates and hydraulic pressure indicates 0 psi, check the HYDSYS circuit breaker on the battery bus circuit breaker panel (left front console). If the circuit breaker is open, it may be reset.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Engine bleed air is used for:",
+            options: ["A.  canopy seal, emergency gear extension, OBOGS", "B.  environmental control system (ECS), OBOGS, anti-G system", "C.  ECS, anti-G system, fuel system pressurization", "D.  OBOGS, anti-G system, rain removal system", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "If the PMU is activated with the IOAT at/or above ___° C, IOAT and the ITT data will be invalid (amber dashes in the counter display and missing ITT pointer) and EDM FAIL will be displayed in the bottom of the primary engine data display.",
+            options: ["A.  96", "B.  93", "C.  121", "D.  80", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "With the PMU functioning, the mechanical overspeed governor modulates oil pressure to the propeller pitch change piston to limit Np below ______, while the electronic governor will maintain Np at 100%.",
+            options: ["A.  1.31", "B.  1.15", "C.  1.09", "D.  1.06", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "With the PMU off (manual mode), the PCL schedules fuel directly to the engine through the FMU and the pilot must exercise care to ensure N1, temperature, and torque limits are not exceeded.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "The fuel system provides approximately_____ pounds of usable fuel through the single point refueling system. Approximately _______ pounds of additional fuel is available if manually filled to the base of the filler neck in each wing tank using over-the-wing/gravity refueling.",
+            options: ["A.  1000, 100", "B.  1100, 100", "C.  1100, 50", "D.  2000, 100", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "Normal operation of landing gear, flaps, speed brake, and nose wheel steering should be considered unavailable when the HYDR FL LO annunciator is illuminated and pressure is below_______ psi:",
+            options: ["A.  2400", "B.  3000", "C.  1800", "D.  800", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "Anti-ice heat is provided to both the pitot tubes and the static ports.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "A suitable landing area is a hard surface runway, taxiway, or under/overrun. Landing on an unprepared surface or ditching is not recommended.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "The AOA heat is controlled through a switch labeled:",
+            options: ["A.  AOA heat", "B.  Defog", "C.  Inflow", "D.  Probes Anti Ice", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "For high altitude ejections, an altitude sensing device and G-limiting device delay seat/pilot separation and parachute deployment until the seat and pilot are between _______ and _______ ft MSL and a safe parachute deployment speed.",
+            options: ["A.  13,000 to 17,000", "B.  11,500 to 15,500", "C.  11,000 to 16,000", "D.  14,000 to 16,000", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "Operation of the Manual Override (MOR) Handle will fire a cartridge to operate:",
+            options: ["A.  upper and lower harness locks", "B.  upper and lower bridle locks", "C.  the headbox deployment unit", "D.  all of the above", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "Execute the Emergency Engine Shutdown On The Ground checklist for the following:",
+            options: ["A.  engine fire", "B.  prop strike", "C.  if the aircraft appears likely to depart the prepared surface", "D.  any other serious ground emergency", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "E"
+        },
+        {
+            question: "Approximately _______ feet of altitude will be lost during an airstart attempt performed at the best glide speed of 125 KIAS. Approximately _______ seconds will be required to complete the starting sequence.",
+            options: ["A.  1350, 30", "B.  1200, 60", "C.  1200, 40", "D.  1000, 40", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "Non-precision approaches, DPs and STARs are automatically deleted from the Flight Plan 0 page (active flight plan) in non-volatile memory ___ minutes after the GPS is turned off.",
+            options: ["A.  2", "B.  5", "C.  10", "D.  15", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "When the OBOGS is turned on a BIT is initiated and the system enters a system warm-up period which lasts approximately ___ minutes, during which time the OBOGS FAIL annunciator is inhibited.",
+            options: ["A.  1", "B.  2", "C.  3", "D.  4", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "When receiving radar vectors to final for a GPS approach, select OBS mode and set the FAF as the active waypoint. Select the inbound course to the FAF in the EHSI.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Due to the sensitivity of the signal conditioning unit, a single, momentary illumination of the amber OIL PX annunciator while maneuvering is possible but may not indicate a malfunction.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "When testing the cockpit lamps using the lamp test switch, the landing gear control handle and gear lights are illuminated only in the cockpit that activates the lamp test switch.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Essential steps or items which are to be checked in both cockpits, if occupied, are indicated by _______ following the step.",
+            options: ["A.  an asterisk (*)", "B.  (COMMAND RESPONSE)", "C.  (BOTH)", "D.  (CHALLENGE)", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "With the ISS selector set to BOTH, both seats will eject if the handle is pulled:",
+            options: ["A.  unless the other ejection seat handle safety pin is installed", "B.  even if one ejection seat handle safety pin is installed", "C.  even if both ejection seat handle safety pins are installed", "D.  none of the above", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "If the hydraulic reservoir fluid level indicator shows in the area labeled FULL AC or FULL AD:",
+            options: ["A.  have maintenance personnel service the system", "B.  the system requires servicing after the flight", "C.  the system is fully serviced", "D.  the system requires immediate servicing", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "The emergency oxygen cylinder will be charged to _______ psi minimum at 70 deg F. However, indicated pressure is affected by temperature changes. To approximate acceptable bottle pressure, add or subtract _______ psi for each degree the outside temperature is above or below 70deg F.",
+            options: ["A.  2400, 3.5", "B.  1800, 3.5", "C.  2000, 3", "D.  3000, 4", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "When flying solo, failure to secure the rear seat oxygen regulator will result in the loss of ability to:",
+            options: ["A.  deactivate OBOGS from the front seat", "B.  activate OBOGS from the front seat", "C.  eject from the front seat", "D.  select EMER oxygen from the front seat", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "During the anti-suffocation valve check, if the valve is functioning correctly, it will be_________ to breathe through the valve when you inhale deeply.",
+            options: ["A.  impossible", "B.  possible", "C.  easy", "D.  none of the above", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "When checking the fire detection system, both fire test positions must check good (all four bulbs) in both cockpits (if occupied).",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Before engine start, if PMU FAIL or PMU STATUS annunciators are illuminated:",
+            options: ["A.  set PMU switch to OFF, then NORM", "B.  press PMU reset button", "C.  abort the aircraft and notify maintenance personnel", "D.  start engine with PMU switch OFF", "Reference: T.O.1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "To preclude unnecessary wear to nose wheel steering and tire, ________ nose wheel steering prior to executing sharp turns with differential braking.",
+            options: ["A.  disengage", "B.  engage", "C.  fully deflect", "D.  none of the above", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Do not connect external power if battery voltage is below _______ volts. Connecting external power in this case could cause damage to the aircraft battery.",
+            options: ["A.  22", "B.  23.5", "C.  19", "D.  28", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Any fault discovered during the ________ check is reason for a ground abort.",
+            options: ["A.  BEFORE TAKEOFF", "B.  OVERSPEED GOVERNOR", "C.  BEFORE EXTERIOR", "D.  COCKPIT", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "If climbout obstacles are a factor, rotate to _____ nose high on takeoff and accelerate to best rate of climb speed of _____ KIAS using normal procedures.",
+            options: ["A.  25, 125", "B.  25, 140", "C.  15, 140", "D.  8-10, 160-180", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "If the flaps are set to LDG and the gear is raised, the gear warning horn:",
+            options: ["A.  is inaudible", "B.  will sound momentarily", "C.  will sound and cannot be cancelled", "D.  will sound when the flaps are raised from LDG", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "If Delta P readings other than _____ psi are encountered at or above 18,069 feet, notify maintenance.",
+            options: ["A.  3.9 to 4.0", "B.  3.2 +/- .6", "C.  3.0 +/-.6", "D.  3.6 +/- .2", "Reference: 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "Before stalling, spinning and aerobatics verify caution and warning annunciators are extinguished and fuel imbalance is less than ____ pounds.",
+            options: ["A.  160", "B.  70", "C.  50", "D.  10", "Reference: 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "During a missed approach, smoothly advance the PCL to MAX power and retract the speed brake (if extended). Set attitude to ____________ nose high and execute the missed approach procedure.",
+            options: ["A.  25 degrees", "B.  5 degrees above level flight", "C.  as required", "D.  10-15 degrees", "Reference: 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "When landing with a crosswind:",
+            options: ["A.  maintain wing low attitude and rudder input through the flare", "B.  land in a crab", "C.  hold crab until just prior to touchdown", "D.  hold runway alignment with rudder until just prior to touchdown", "Reference: 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "During the COCKPIT (ALL FLIGHTS) interior preflight checklist, the parking brake must always be reset.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "For most accurate results, check oil level ___to___ minutes after engine shutdown.",
+            options: ["A.  10, 15", "B.  15, 20", "C.  20, 25", "D.  25, 30", "Reference: 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "During the Overspeed Governor Check, verify idle N1 stabilizes between_______ after turning the PMU switch OFF.",
+            options: ["A.  55-60%", "B.  60-70%", "C.  62-80%", "D.  68-79%", "Reference: 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "During a normal takeoff, initiate rotation to ______ degrees nose high at rotation speed.",
+            options: ["A.  7-10", "B.  10-12", "C.  12-15", "D.  7-15", "Reference: 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "N1 will automatically reduce from flight idle (67%) to ground idle (60-61%) approximately _____ seconds after touchdown:",
+            options: ["A.  7", "B.  8", "C.  10", "D.  4", "Reference: 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "In the auto start mode, if a hot start, hung start, or no start is detected, the PMU should terminate the start sequence. The pilot must then perform a _______ second motoring run.",
+            options: ["A.  10", "B.  15", "C.  20", "D.  30", "Reference: 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "During gusty wind conditions, increase landing threshold and touchdown speeds by 50% of the gust increment up to a maximum increase of _______ knots.",
+            options: ["A.  5", "B.  10", "C.  8", "D.  Do not increase speeds", "Reference: 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "Airstart attempts are not recommended below ______ AGL, as primary attention should be to eject or safely recover the aircraft.",
+            options: ["A.  6000", "B.  5000", "C.  2000", "D.  3000", "Reference: 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "If the standby attitude gyro off flag appears after the battery bus has failed, the indicator will continue to operate for at least _____ minutes.",
+            options: ["A.  5", "B.  9", "C.  15", "D.  30", "Reference: 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "If the battery fails, OBOGS will be inoperative. Emergency oxygen is recommended above 10,000 feet cabin altitude.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Maximum airspeed for flight with a shattered/damaged/unlocked canopy is:",
+            options: ["A.  200 KIAS", "B.  185 KIAS", "C.  150 KIAS", "D.  120 KIAS", "Reference: 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "If safe gear-down indications are obtained at any point during LANDING GEARMALFUNCTION checklist:",
+            options: ["A.  discontinue the checklist and land as soon as practical", "B.  cycle the landing gear handle to verify safe gear down indications", "C.  pull the EMER LDG GR handle", "D.  none of the above", "Reference: 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Illumination of the DUCT TEMP annunciator indicates that bleed air temperature in the environmental systems duct (at anytime) or in the defog duct (defog on) has exceeded _____ deg F.",
+            options: ["A.  200", "B.  500", "C.  300", "D.  100", "Reference: 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "Whenever the trim interrupt button is being depressed, or when the trim disconnect switch is set to disconnect, all trim systems are disengaged and the TAD is disconnected.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Recommended minimum altitudes for ejection are _____ feet AGL for controlled ejection, and_____ feet AGL for uncontrolled ejection.",
+            options: ["A.  2,000; 10,000", "B.  2,000; 6,000", "C.  6,000; 10,000", "D.  None of the above", "Reference: 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "For an engine failure, depending on airspeed, N1 will indicate 0% within approximately __seconds, even though the gas generator core may not have seized.",
+            options: ["A.  2", "B.  5", "C.  10", "D.  15", "Reference: 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "Full rudder deflection above ________ KIAS will exceed the limits for the rudder control system.",
+            options: ["A.  150", "B.  120", "C.  180", "D.  227", "Reference: 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Holding a zero-G (+/- 0.25 G) loading for over ______ seconds can cause engine damage and possible engine failure, regardless of oil pressure indications.",
+            options: ["A.  15", "B.  5", "C.  10", "D.  30", "Reference: 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "Engine operation with high pressure pump suction feeding is limited to ___ hours.",
+            options: ["A.  4", "B.  6", "C.  8", "D.  10", "Reference: 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "You should attempt to manually balance a fuel load when the alternate engine data display is indicating FP FAIL.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "Which system operates independently from the primary hydraulic system:",
+            options: ["A.  Landing gear normal extension", "B.  Speed brake", "C.  Nose wheel steering", "D.  Wheel brakes", "Reference: 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "Cabin pressurization will bleed out through the ________ when the inflow switch is set to OFF.",
+            options: ["A.  canopy seal", "B.  ram air valve", "C.  cabin pressurization outflow valves", "D.  inflow valve", "Reference: 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "The extra drag during an airstart attempt will cause a descent rate greater than 1350-1500 feet/min.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Increase approach speed by _______ KIAS when landing with ice accumulation.",
+            options: ["A.  5", "B.  10", "C.  20", "D.  0", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "At idle power during aerobatics or spins, allowable transient oil pressure is _____ psi for a maximum of _____ seconds.",
+            options: ["A.  15-90, 10", "B.  15-40, 5", "C.  40-90, 5", "D.  40-130, 10", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "Maximum oil pressure during start is _____ psi.",
+            options: ["A.  3", "B.  45-65", "C.  105", "D.  200", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "Oil temperatures up to _____ deg C are acceptable for ground operations at and below 20% torque:",
+            options: ["A.  105", "B.  110", "C.  120", "D.  132", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "Do not attempt a battery powered ground start if the battery voltage is below _____ volts.",
+            options: ["A.  20", "B.  23.5", "C.  28", "D.  22", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "Which of the following is NOT one of the four 20-second starter duty cycles:",
+            options: ["A.  First - motor 20 seconds, then 30 second cooling period", "B.  Second - motor 20 seconds then 2 minute cooling period", "C.  Third - motor 20 seconds then 10 minute cooling period", "D.  Fourth - motor 20 seconds then 30 minute cooling period", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "Maximum airspeed for flying through turbulence is ______ KIAS. The recommended airspeed in turbulent air is ______ KIAS.",
+            options: ["A.  180, 160", "B.  195, 180", "C.  227, 200", "D.  250, 230", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "Airstart attempts outside of the airstart envelope may be unsuccessful or result in engine overtemperature. The airstart envelope is defined as:",
+            options: ["A.  125-200 KIAS for sea level to 15,000\'", "B.  135-200 KIAS for 15,001 to 20,000\'", "C.  125 KIAS minimum", "D.  A & B only", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "For a clean aircraft, asymmetric (rolling Gs) acceleration limits are:",
+            options: ["A.  +7.0 to -3.5", "B.  +2 to 0", "C.  +4.7 to -1.0", "D.  +4.7 to -3.5", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "Canopy defog must be off for takeoff and landing.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "The maximum permissible crosswind for a wet runway is ____ knots.",
+            options: ["A.  10", "B.  15", "C.  20", "D.  25", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Aerobatic operation is prohibited with indicated fuel quantities below _____ pounds per side (yellow arc on gage).",
+            options: ["A.  50", "B.  150", "C.  160", "D.  370 +/- 30", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "The canopy shall not be opened on the ground when the surface winds exceed _____ knots.",
+            options: ["A.  17.5", "B.  25", "C.  40", "D.  50", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "Ejection seats may be operated with the canopy open without injuring the user.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "Normal oil pressure during steady state conditions is________ PSI.",
+            options: ["A.  40-130", "B.  90-200", "C.  90-130", "D.  90-120", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "Spins above ________ feet pressure altitude are prohibited:",
+            options: ["A.  24000", "B.  20000", "C.  22000", "D.  25000", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "Maximum ITT for starting is _____ deg C (5 sec).",
+            options: ["A.  820", "B.  750", "C.  1000", "D.  870", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "Allowable torque range with Np stabilized and PCL at IDLE:",
+            options: ["A.  0 to 3%", "B.  1 to 10%", "C.  3 to 5%", "D.  2 to 6%", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "Operating maneuvering speed (Vo) is the speed above which full or abrupt control movements in one axis can result in structural damage to the aircraft. Vo is ___ KIAS.",
+            options: ["A.  240", "B.  236", "C.  227", "D.  206", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "Aural tones are inaudible during engine start until the engine\'s gas generator (N1) is above:",
+            options: ["A.  0.2", "B.  0.3", "C.  0.4", "D.  0.5", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "The T-6 is permitted to transit through a _______ foot band of _______ icing.",
+            options: ["A.  2000, light rime", "B.  4000, trace", "C.  5000, moderate rime", "D.  5000, light rime", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "Illumination of the L or R FUEL LO annunciator indicates that approximately _______ pounds of usable fuel remains in the affected wing tank:",
+            options: ["A.  150", "B.  120", "C.  110", "D.  100", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "If the flaps are set to any position other than UP, the speed brake will:",
+            options: ["A.  remain extended if already extended", "B.  retract if already extended", "C.  remain retracted if the pilot attempts to extend it after the flaps are extended", "D.  b and c above", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "Natural stall warning, in the form of light aerodynamic buffet, occurs approximately _____ knots before the stall during unaccelerated, power-off stalls in all configurations.",
+            options: ["A.  2", "B.  3", "C.  5", "D.  10", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "With power-off, lateral roll during a wings level stall is typically to the _____, and occurs near full _____ stick.",
+            options: ["A.  left, aft", "B.  right, forward", "C.  left, forward", "D.  right, aft", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "In general, out-of-control flight (OCF) can be divided into three categories:",
+            options: ["A.  Stall, Spin, Recovery", "B.  Post-stall Gyrations, Incipient spin, Steady-State Spin", "C.  Buffet, Steady-state spin, Spiral", "D.  Post-stall gyration, Aggravated Spin, Developed Spin", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "A spiral is a rolling and/or yawing motion of the aircraft that is often mistaken for a spin, but is not steady state in that airspeed is increasing through ________ KIAS and motions are oscillatory.",
+            options: ["A.  100", "B.  140", "C.  160", "D.  200", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "The best response to a spiral is to reduce the power to IDLE and _______________ controls until motion stops.",
+            options: ["A.  apply anti-spin", "B.  apply pro-spin", "C.  neutralize the", "D.  None of the above", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "Spin entry at attitudes greater than __________ degrees nose high may result in low oil pressure and engine damage.",
+            options: ["A.  20", "B.  40", "C.  50", "D.  45", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "In a steady-state spin, rotation rates will stabilize between _____ to ____ seconds per turn, with altitude loss of _____ to ____ feet per turn.",
+            options: ["A.  1, 1.5, 400, 500", "B.  1.5, 3, 300, 400", "C.  4, 5, 300, 500", "D.  2, 3, 400, 500", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "Ailerons have a pronounced effect on spin characteristics.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "With ailerons held in the direction of spin rotation, roll and yaw become noticeably oscillatory.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "An aggravated spin is caused by maintaining ____ -spin rudder while moving the control stick _____ of the neutral position.",
+            options: ["A.  anti, forward", "B.  pro, forward", "C.  anti, aft", "D.  pro, aft", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "Assuming the first 3 (boldface) steps of the IMMEDIATE AIRSTART (PMU NORM) checklist resulted in a restart, moving the PCL above IDLE before N1 stabilizes at approximately 67% will cause an increase in fuel flow which may cause engine failure due to a severe ITT overtemperature.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "When taking off in areas of suspected windshear, use the longest suitable runway, and delay rotation to Vrot plus up to _________ knots.",
+            options: ["A.  3", "B.  5", "C.  8", "D.  10", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "The aircraft should recover from erect spins with controls free and the PCL at IDLE. However, the number of additional turns required for spin rotation to cease after releasing controls may increase significantly.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "A gear-up landing to a suitable landing area is preferred if any gear is confirmed UNSAFE. Fly a flat, power-on, straight-in approach while maintaining directional control with rudder.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Altitude loss during dive recovery is determined by four independent factors. Which of the following is not one of those factors?",
+            options: ["A.  Angle of dive", "B.  Altitude at start of pullout", "C.  Airspeed at start of pullout", "D.  D Acceleration maintained during pullout", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "E"
+        },
+        {
+            question: "If attempting an airstart or positioning to land after an engine failure, the following procedures should be followed. Above 150 KIAS, initiate a zoom climb using a ______ pull up to a _____ climb angle until approaching the desired glide airspeed (use approximately _____ lead point.",
+            options: ["A.  2G, 20°, 20 KIAS", "B.  1G, 25°, 20 KIAS", "C.  3G, 20°, 30 KIAS", "D.  2G, 30°, 20 KIAS", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Landing on an unprepared surface is NOT recommended. However, if ejection is not possible or the ejection system malfunctions, _______________ to avoid causing the aircraft to tumble or cartwheel on touchdown.",
+            options: ["A.  extend the speedbrake", "B.  do not extend the landing gear or flaps", "C.  extend the landing gear and flaps", "D.  select full flaps", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "If windshear is encountered during an approach for landing, execute _____________.",
+            options: ["A.  a full stop", "B.  a go around/waveoff", "C.  a missed approach and request a visual approach", "D.  a level off", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "When flying a windshear-precautions approach, set takeoff flaps and fly approach up to _____knots faster than normal.",
+            options: ["A.  5", "B.  10", "C.  15", "D.  20", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "The potential for lightning strikes increases near the ______.",
+            options: ["A.  ground", "B.  mountains", "C.  troposhpere", "D.  freezing level", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "The brakes will hold the aircraft on snow-covered or icy runways with the PCL at MAX.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "Hydroplaning can occur above _____ knots for the nose tire and above _____ knots for the main tires when inflated to nominal tire pressures.",
+            options: ["A.  80, 105", "B.  85, 115", "C.  90, 110", "D.  95, 105", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "Maneuvers with ice accumulation are restricted to 45 degrees of bank and 0-2G\'s normal acceleration, up to stall warning system activation.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "For best cockpit cooling below 7,500 feet MSL, set RAM AIR switch to ______ . Set temperature controller as required.",
+            options: ["A.  HIGH", "B.  NORM", "C.  OFF", "D.  either a or b", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "During hot weather operations, higher than normal oil temperatures may be encountered during taxi.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "During takeoff in hot weather, the aircraft will accelerate _____ than normal and ground run will be _____ because the air is less dense.",
+            options: ["A.  slower, longer", "B.  faster, shorter", "C.  faster, longer", "D.  slower, shorter", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "During high temperature operations, radiant heat from the engine may heat soak the IOAT sensor, raising IOAT beyond ambient temperatures. To preclude start malfunctions, consider parking the aircraft into the wind and___________________.",
+            options: ["A.  opening the left and right engine cowling doors to facilitate engine and IOAT sensor cooling", "B.  hand-spinning the propeller during the walk-around", "C.  using the PMU-OFF start procedure", "D.  using an air conditioning cart for start", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Authorized GPS approaches must be retrievable from the aircraft database. This does not prevent using the GPS for situational awareness on approaches that cannot be flown GPS-only.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Declare \"minimum fuel\" or \"emergency fuel\" to the appropriate controlling agency when the aircraft may land at the intended destination with less than the MDS-specific minimum or emergency fuel reserves.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Each crewmember must have an operable flashlight for night operations",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "When selecting an IFR alternate, ensure that the worst alternate forecast weather conditions for ETA 1 hour, to include TEMPO conditions (except those caused by thunderstorms, rain, or snow showers), will meet or exceed:",
+            options: ["A.  A ceiling of 1000 ft., or 500 ft. above the lowest compatible minimum, whichever is higher", "B.  a visibility of 2 SM or 1 SM above the lowest compatible minimum, whichever is higher", "C.  a and b", "D.  none of the above", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "By filing a flight plan, the PIC certifies:",
+            options: ["A.  The flight was properly ordered, authorized, and released IAW AFI 11-401", "B.  Current NOTAMs, weather and other relevant information were obtained", "C.  Responsibility for the safety of the aircraft, the formation, and its occupants;", "D.  The fight plan has been reviewed for completeness and accuracy", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "E"
+        },
+        {
+            question: "Aircrew may file to and land at US military and Joint-Use fields (i.e. MIL/CIV) fields. A joint use airport is defined as a military airport that authorizes civilian use (e.g., Charleston AFB). A joint use airport is not by definition a civil P airport. A civil airport with a military tenant is a civil P airport, not a joint use airport.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Unauthorized or impromptu flight demonstrations, maneuvers, events, or \"fly-bys\" are acceptable if approved by Air Traffic Control.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "VFR flight plans are not automatically closed. USAF pilots will notify ATC by any means available to ensure their VFR flight plan is closed. Failure to ensure a VFR flight plan is closed within ______ of the ETA will cause initiation of search and rescue efforts.",
+            options: ["A.  1 hour", "B.  1/2 hour", "C.  20 minutes", "D.  1/4 hour", "Reference: (AFMAN 11-217 V2, 6.2.5", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "Pilots under instrument flight rules (IFR) or visual flight rules (VFR), whether or not under radar control, are responsible for avoiding traffic, terrain/obstacles, and environmental hazards.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Aircraft in distress have the right-of-way over all other air traffic.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "If cabin altitude exceeds 18,000 MSL following the unintended loss of cabin pressure, aircrew and passengers must be evaluated by a flight surgeon or other competent aviation medical authority prior to further flight.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "When converging at approximately the same altitude (except head-on or approximately so), the aircraft to the other\'s _______ has the right-of-way.",
+            options: ["A.  right", "B.  left", "C.  six o\'clock", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "An overtaken aircraft has the right-of-way. The overtaking aircraft must alter course to the right.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "If suitably equipped, aircrews will monitor at least one emergency frequency (GUARD) at all times as mission and operational conditions permit. Immediately report distress or ELT transmissions to ATC.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "(In the NAS) Do not exceed _____ KIAS below 10,000 ft. MSL unless approved by the MAJCOM.",
+            options: ["A.  200", "B.  250", "C.  275", "D.  300", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "(In the NAS) Do not exceed _____ knots indicated airspeed (KIAS) at or below 2,500 ft. AGL within 4 NMs of the primary airport of a Class C or Class D airspace area unless authorized by ATC or required to maintain the minimum operating airspeed specified in the aircraft T.O.",
+            options: ["A.  200", "B.  250", "C.  275", "D.  300", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "(In the NAS) Do not exceed _____ KIAS in the airspace underlying Class B airspace or in a VFR corridor designated through Class B airspace unless required to maintain the minimum operating airspeed specified in the aircraft T.O.",
+            options: ["A.  175", "B.  200", "C.  250", "D.  275", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "Air Force pilots may operate their aircraft below 10,000 ft MSL, within the NAS, in excess of 250 KIAS within restricted areas or Military Operating Areas (MOAs).",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Authorized IFR departure methods include:",
+            options: ["A.  Obstacle Departure Procedure (ODP)", "B.  Standard Instrument Departure (SID)", "C.  Specific ATC Departure Instructions", "D.  Diverse Departure (ICAO - Omnidirectional Departure)", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "E"
+        },
+        {
+            question: "Fixed-wing pilots are prohibited from accepting Land and Hold Short Operations (LAHSO) clearances. Aircrews may passively participate in LAHSO (land or take-off when another aircraft has been given a LAHSO clearance.)",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Pilots are never relieved of the responsibility for terrain and obstacle avoidance. The radio call \"Radar Contact\" only means the aircraft has been identified on radar. Responsibility is shared between pilot and controller only after navigational guidance",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFI 11-202 Vol 3", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Operate aircraft over congested areas (i.e., cities, towns, settlements) or groups of people at an altitude which ensures at least ______ ft. above the highest obstacle within a ______ ft. radius.",
+            options: ["A.  1,000, 3,000", "B.  3,000, 1,000", "C.  1,000, 2,000", "D.  2,000, 1,000", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "Operate aircraft over non-congested areas at an altitude at or above _____ ft. AGL except over open water, in special use airspace (SUA), or in sparsely populated areas.",
+            options: ["A.  500", "B.  1000", "C.  2000", "D.  None of the above", "Reference: AFI 11-202 Vol 3,AETC SUP", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Except for MAJCOM-approved aerial demonstrations/events or during takeoff or landing, do not operate aircraft below an altitude that, should an emergency landing become necessary, creates undue hazard to persons or property.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Do not operate within a designated disaster area unless the aircraft is:",
+            options: ["A.  Assisting efforts", "B.  Operating under an ATC approved IFR flight plan", "C.  Flying directly to or from an airport in the area without hampering or endangering relief activities", "D.  All of the above", "Reference: AFI 11-202 Vol 3,AETC SUP", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "If equipped, turn anti-collision or strobe lights on from just prior to engine start until engine shutdown.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Pilots will not takeoff, fly an approach or land at an airport where thunderstorms or other hazardous conditions are producing hail, strong winds, gust fronts, heavy rain, lightning, wind shear, or microbursts.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "Immediately report hazardous weather conditions, wake turbulence, volcanic activity, or largeconcentrations of birds or wildlife on or near the airfield to the appropriate controlling agency.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "When flying VFR, utilize radar advisory and monitoring or control services when practical to ensure flight following by any means available (i.e., FSS or C2 agency).",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFI 11-202 Vol 3,AETC SUP", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "The maximum total flying time allowed in the T-6 during a 12-hour Flight Duty Period is _____hours.",
+            options: ["A.  8 total hours", "B.  5.5 hours instructional or FCF", "C.  a and b", "D.  none of the above", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "C"
+        },
+        {
+            question: "For fixed-wing aircraft filing IFR, prevailing weather for the estimated time of arrival (ETA) +/-1 hour) at destination must be at or above:",
+            options: ["A.  1000/3", "B.  500/1", "C.  300/2", "D.  The lowest compatible published landing minimums (TEMPO conditions may be below published minimums at ETA +/- 1 hour).", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "Pilots must file IFR to a destination or an alternate with a compatible instrument approach. If there is no compatible published approach at the destination:",
+            options: ["A.  pilots may proceed to a point served by a published approach or to an IFR point where forecast weather at ETA +/-1 hour allows the pilot to continue VFR flight to the destination", "B.  add 20% or 30 minutes to existing fuel reserves, whichever is higher", "C.  pilots who have been certified by MAJCOM/A3 are authorized to file to airfields without compatible instrument approaches", "D.  none of the above", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "For any alleged FAA violation, utilize aircraft call-sign for any contact with ATC. Do not release names of crewmembers to non-USAF agencies without the permission of the AFREP in coordination with the MAJCOM/A3 or HQ USAF/A3O.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "An ATC clearance is not authority to deviate from this instruction (AFI 11-202 Vol 3, AETC SUP 1). A PIC may only deviate from this instruction (AFI 11-202 Vol 3, AETC SUP 1), flight rule, or ATC clearance to protect life, for safety of flight, or when an in-flight emergency requires immediate action.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: AFI 11-202 Vol 3, AETC SUP", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "If the generator fails in flight, opening the bus tie switch will reduce the electrical load on the main battery by shedding the generator bus. This will permit main battery operation for at least______ min. Battery voltage and ammeter cannot be directly monitored due to loss of the associated display.",
+            options: ["A.  15", "B.  20", "C.  60", "D.  30", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "D"
+        },
+        {
+            question: "For off-station engine starts, 24.0 to 29.5 VDC are acceptable external power voltage limits.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "A difference of up to, but not including, 1 G (< 1 G) between the accelerometers in the front and rear cockpit is acceptable.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+        {
+            question: "The FCP windscreen is designed to withstand a 4lb birdstrike at airspeeds up to ______ knots.",
+            options: ["A.  200", "B.  270", "C.  300", "D.  316", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "Failure to ensure the ST READY light remains illuminated for ___ seconds following PCL movement to the Auto Start range may result in engine damage from the start being conducted in manual mode.",
+            options: ["A.  2", "B.  3", "C.  6", "D.  9", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "B"
+        },
+        {
+            question: "When moving the PCL forward past IDLE following an engine start, verify travel past IDLE by hearing two audible clicks as the PCL is moved forward. Improper position of the PCL short of the two audible clicks could result in inadvertent engine shutdown.",
+            options: ["A.  TRUE", "B.  FALSE", "Reference: T.O. 1T-6A-1", "Page/Para: na"],
+            correctAnswer: "A"
+        },
+    ];
+
+    function checkAnswer(button, answer) {
+        const parentDiv = button.parentElement;
+        const options = parentDiv.querySelectorAll('.option');
+        const answerElement = document.getElementById('answer');
+        const correctAnswer = answerElement.textContent.split(': ')[1];
+
+        options.forEach(option => {
+            option.disabled = true;
+            if (option.textContent.startsWith(correctAnswer)) {
+                option.classList.add('highlight');
+            }
+        });
+
+        if (answer === correctAnswer) {
+            button.classList.add('correct');
+        } else {
+            button.classList.add('incorrect');
+        }
+
+        answerElement.classList.remove('hidden');
+        document.getElementById('next-button').classList.remove('hidden');
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < questions.length) {
+            loadQuestion(currentQuestionIndex);
+        } else {
+            alert('Quiz completed!');
+            // Optionally, add functionality to restart the quiz or show the results.
+        }
+    }
+
+    function loadQuestion(index) {
+        const questionData = questions[index];
+        document.getElementById('question-text').textContent = `${index + 1}. ${questionData.question}`;
+        document.getElementById('options').innerHTML = questionData.options.map(option => `<button class="option" onclick="checkAnswer(this, '${option.charAt(0)}')">${option}</button>`).join('');
+        document.getElementById('answer').textContent = `Correct Answer: ${questionData.correctAnswer}`;
+        document.getElementById('answer').classList.add('hidden');
+        document.getElementById('next-button').classList.add('hidden');
+    }
+
+    // Initial load
+    loadQuestion(currentQuestionIndex);
+</script>
+
+</body>
+</html>
